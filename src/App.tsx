@@ -389,7 +389,7 @@ export default function App() {
             <motion.div 
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className="w-full max-w-md liquid-glass rounded-3xl p-8 shadow-2xl relative overflow-hidden"
+              className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-250 dark:border-zinc-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden"
             >
               <div className="absolute -right-16 -top-16 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
               <div className="absolute -left-16 -bottom-16 w-32 h-32 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -427,7 +427,7 @@ export default function App() {
                     onChange={(e) => setUsernameInput(e.target.value)}
                     autoFocus
                     placeholder="Masukkan username (contoh: Luthfi)"
-                    className="w-full px-4 py-2.5 bg-white dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-zinc-950 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-400 transition shadow-sm"
+                    className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-950 border-2 border-zinc-350 dark:border-zinc-700 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-zinc-950 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-400 transition shadow-sm"
                   />
                 </div>
 
@@ -438,7 +438,7 @@ export default function App() {
                     value={passwordInput}
                     onChange={(e) => setPasswordInput(e.target.value)}
                     placeholder="Masukkan password"
-                    className="w-full px-4 py-2.5 bg-white dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-zinc-950 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-400 transition shadow-sm"
+                    className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-950 border-2 border-zinc-350 dark:border-zinc-700 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-zinc-950 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-400 transition shadow-sm"
                   />
                 </div>
 
@@ -467,7 +467,7 @@ export default function App() {
   }
 
   return (
-    <div className={`${theme === 'dark' ? 'dark text-white' : 'text-zinc-800'}`}>
+    <div className={`${theme === 'dark' ? 'dark text-zinc-100 bg-zinc-950' : 'text-zinc-800 bg-zinc-50'} min-h-screen flex flex-col transition-colors duration-200 relative`}>
       <div className="mesh-bg"></div>
       
       {/* FULL A4 PRINT WRAPPER OVERLAY */}

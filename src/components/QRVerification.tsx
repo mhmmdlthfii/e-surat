@@ -114,14 +114,14 @@ export default function QRVerification({ initialCode = '', triggerToast }: QRVer
         {/* Input Form */}
         <div className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
           <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400" size={18} />
             <input 
               id="verification_code_input"
               type="text" 
               placeholder="Contoh: SMH-2026-9E7B8 atau UUID..."
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="w-full bg-white dark:bg-zinc-950 pl-11 pr-4 py-2.5 border border-zinc-200 dark:border-zinc-850 rounded-2xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/25 font-mono uppercase tracking-wider"
+              className="w-full bg-zinc-50 dark:bg-zinc-950 pl-11 pr-4 py-2.5 border-2 border-zinc-300 dark:border-zinc-800 rounded-2xl text-xs font-bold text-zinc-950 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/25 font-mono uppercase tracking-wider"
               onKeyDown={(e) => { if (e.key === 'Enter') handleVerify(); }}
             />
           </div>

@@ -156,25 +156,11 @@ body {
               inset 0 1px 0 0 rgba(255, 255, 255, 0.1) !important;
 }
 
-/* Dynamic High-Contrast Utility Overrides for Premium WCAG 2.1 Compliance */
+
+/* Clean, transitions for general texts */
 .text-zinc-300, .text-zinc-350, .text-zinc-400, .text-zinc-500, .text-zinc-550, .text-zinc-650 {
-  transition: color 0.15s ease-in-out;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
 }
 
-/* Light Mode High Contrast Overrides */
-.text-zinc-300 { color: #4b5563 !important; } /* Higher-contrast slate/zinc-600 */
-.text-zinc-350 { color: #3f3f46 !important; } /* Higher-contrast slate/zinc-700 */
-.text-zinc-400 { color: #27272a !important; } /* Higher-contrast slate/zinc-800 */
-.text-zinc-500 { color: #18181b !important; } /* Higher-contrast slate/zinc-900 */
-.text-zinc-550 { color: #09090b !important; } /* zinc-950 */
-.text-zinc-650 { color: #09090b !important; } /* zinc-950 */
-
-/* Dark Mode High Contrast Overrides */
-.dark .text-zinc-300 { color: #f4f4f5 !important; } /* zinc-100 */
-.dark .text-zinc-350 { color: #e4e4e7 !important; } /* zinc-200 */
-.dark .text-zinc-400 { color: #d4d4d8 !important; } /* zinc-300 */
-.dark .text-zinc-500 { color: #fafafa !important; } /* zinc-50 */
-.dark .text-zinc-550 { color: #ffffff !important; } /* Pure white */
-.dark .text-zinc-650 { color: #ffffff !important; } /* Pure white */
 
 
