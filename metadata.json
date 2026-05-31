@@ -1,0 +1,6 @@
+{
+  "name": "SIMAHAT",
+  "description": "Sistem Manajemen Surat SMP Islam Al Hikmah Mayong - Sistem persuratan modern berbasis tanda tangan digital, QR code validation, dan arsip digital.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

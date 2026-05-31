@@ -1,0 +1,158 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --color-zinc-150: rgb(240, 240, 243);
+  --color-zinc-250: rgb(220, 220, 225);
+  --color-zinc-350: rgb(195, 195, 202);
+  --color-zinc-550: rgb(130, 130, 142);
+  --color-zinc-650: rgb(85, 85, 95);
+  --color-zinc-850: rgb(34, 34, 40);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom subtle animation spin for dark modes */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 15s linear infinite;
+}
+
+/* Frosted Glass Mesh Background */
+.mesh-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -10;
+  background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+  background-image: radial-gradient(at 0% 0%, hsla(210,100%,90%,1) 0, transparent 50%), 
+                    radial-gradient(at 100% 0%, hsla(190,100%,90%,1) 0, transparent 50%), 
+                    radial-gradient(at 100% 100%, hsla(220,100%,90%,1) 0, transparent 50%), 
+                    radial-gradient(at 0% 100%, hsla(200,100%,90%,1) 0, transparent 50%);
+  transition: background 0.5s ease;
+}
+
+.dark .mesh-bg {
+  background: linear-gradient(135deg, #090d16 0%, #111827 100%);
+  background-image: radial-gradient(at 0% 0%, hsla(220, 50%, 11%, 1) 0, transparent 55%), 
+                    radial-gradient(at 100% 0%, hsla(240, 45%, 12%, 1) 0, transparent 55%), 
+                    radial-gradient(at 100% 100%, hsla(225, 45%, 10%, 1) 0, transparent 55%), 
+                    radial-gradient(at 0% 100%, hsla(230, 40%, 11%, 1) 0, transparent 55%);
+}
+
+/* Frosted Glass Panes */
+.glass {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(14px) saturate(190%);
+  -webkit-backdrop-filter: blur(14px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 10px 40px 0 rgba(31, 38, 135, 0.05);
+}
+
+.dark .glass {
+  background: rgba(18, 24, 38, 0.45);
+  backdrop-filter: blur(14px) saturate(170%);
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.28);
+}
+
+/* Glass Interactive Buttons & Items */
+.btn-primary {
+  background: linear-gradient(135deg, #3B82F6, #06B6D4);
+  color: white;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 15px 0 rgba(59, 130, 246, 0.2);
+}
+
+.btn-primary:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px 0 rgba(59, 130, 246, 0.35);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.dark .btn-primary {
+  background: linear-gradient(135deg, #2563EB, #0891B2);
+  box-shadow: 0 4px 15px 0 rgba(37, 99, 235, 0.3);
+}
+
+.dark .btn-primary:hover {
+  box-shadow: 0 6px 20px 0 rgba(37, 99, 235, 0.45);
+}
+
+/* Active Highlight */
+.active-link {
+  background: linear-gradient(135deg, #3B82F6, #06B6D4);
+  color: white !important;
+  box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.25);
+}
+
+.dark .active-link {
+  background: linear-gradient(135deg, #2563EB, #0891B2);
+  box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.35);
+}
+
+/* Sidebar hover transitions */
+.sidebar-link {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: translateX(2px);
+}
+
+.dark .sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(2px);
+}
+
+/* Status markers as pill badges */
+.status-pill {
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Liquid Glass Theme styling with High Opacity - Beautiful & Legible */
+.liquid-glass {
+  background: rgba(248, 250, 252, 0.88) !important;
+  backdrop-filter: blur(28px) saturate(220%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(220%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.75) !important;
+  box-shadow: 0 12px 40px -4px rgba(31, 38, 135, 0.14), 
+              inset 0 1px 0 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+.dark .liquid-glass {
+  background: rgba(15, 23, 42, 0.92) !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 12px 40px -4px rgba(0, 0, 0, 0.55), 
+              inset 0 1px 0 0 rgba(255, 255, 255, 0.1) !important;
+}
+
