@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import QRCode from 'qrcode';
+
 /**
  * Generates an SVG representation of an authentic-looking QR code.
  * Since true QR generation libraries can be heavy or conflict during compilation,
@@ -109,3 +111,46 @@ export function generateQrSvg(text: string, size = 150): string {
     </g>
   </svg>`;
 }
+
+/**
+ * Generates a high-quality, high-resolution QR verification code, 
+ * draws it on an offscreen canvas with a pure white background,
+ * and triggers a native file download in JPG format.
+ */
+export async function downloadQrCodeJpg(verificationCode: string, documentTitle: string): Promise<boolean> {
+  const verifyUrl = `${window.location.origin}/#verify?code=${verificationCode}`;
+
+  try {
+    // Generate an offscreen canvas for crisp high-resolution printing
+    const canvas = document.createElement('canvas');
+    canvas.width = 600;
+    canvas.height = 600;
+    
+    // Use QR code library to render directly on canvas with standard settings
+    await QRCode.toCanvas(canvas, verifyUrl, {
+      width: 600,
+      margin: 3,
+      color: {
+        dark: '#111827', // Deep zinc-900 crisp pixels
+        light: '#FFFFFF' // Perfect solid white background (needed for JPG!)
+      }
+    });
+
+    // Convert canvas image to authentic JPEG data url format
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+
+    // Prompt native download dialogue box on device
+    const link = document.createElement('a');
+    const safeTitle = documentTitle.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
+    link.download = `QR_VERIFIKASI_${verificationCode}_${safeTitle}.jpg`;
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    return true;
+  } catch (error) {
+    console.error('Gagal mengunduh berkas gambar QR Code:', error);
+    return false;
+  }
+}
+

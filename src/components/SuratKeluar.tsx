@@ -16,7 +16,8 @@ import {
   pushNotification 
 } from '../db';
 import { 
-  generateQrSvg 
+  generateQrSvg,
+  downloadQrCodeJpg
 } from '../utils/qr';
 import DocQRCode from './DocQRCode';
 import { 
@@ -35,7 +36,8 @@ import {
   AlertTriangle,
   RotateCcw,
   CheckCircle2,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Download
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -456,13 +458,31 @@ export default function SuratKeluar({ currentUserId, currentUserRole, currentUse
                         )}
 
                         {letter.status === 'Terbit' && (
-                          <button 
-                            onClick={() => openPrintPreview(letter)}
-                            title="Download PDF / Cetak"
-                            className="p-1.5 text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10 dark:hover:bg-emerald-500/20 rounded-lg transition duration-150"
-                          >
-                            <Printer size={16} />
-                          </button>
+                          <>
+                            <button 
+                              onClick={() => openPrintPreview(letter)}
+                              title="Download PDF / Cetak"
+                              className="p-1.5 text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10 dark:hover:bg-emerald-500/20 rounded-lg transition duration-150"
+                            >
+                              <Printer size={16} />
+                            </button>
+                            <button 
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                triggerToast('Menyiapkan gambar QR JPG...', 'indigo');
+                                const success = await downloadQrCodeJpg(letter.verificationCode || '', letter.title);
+                                if (success) {
+                                  triggerToast('QR Code JPG berhasil diunduh!', 'success');
+                                } else {
+                                  triggerToast('Gagal mengunduh QR Code.', 'error');
+                                }
+                              }}
+                              title="Download QR (.jpg)"
+                              className="p-1.5 text-zinc-500 hover:text-blue-500 hover:bg-blue-500/10 dark:hover:bg-blue-500/20 rounded-lg transition duration-150"
+                            >
+                              <Download size={16} />
+                            </button>
+                          </>
                         )}
 
                         {(letter.status === 'Draft' || letter.status === 'Ditolak' || currentUserRole === 'Super Admin') && (
@@ -679,6 +699,33 @@ export default function SuratKeluar({ currentUserId, currentUserRole, currentUse
                       >
                         <RotateCcw size={10} />
                         <span>Reset Posisi</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* High Quality JPG Download Panel */}
+                  {selectedLetter.status === 'Terbit' && (
+                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm space-y-3">
+                      <div className="text-xs font-bold text-zinc-800 dark:text-zinc-300 flex items-center gap-1.5">
+                        <QrCode size={14} className="text-emerald-500" />
+                        <span>Unduh QR Verifikasi</span>
+                      </div>
+                      <p className="text-[10px] text-zinc-400">Unduh gambar kode QR verifikasi resmi dokumen ini dalam format JPG resolusi tinggi untuk dicetak atau diarsipkan.</p>
+                      
+                      <button 
+                        onClick={async () => {
+                          triggerToast('Menyiapkan gambar QR JPG...', 'indigo');
+                          const success = await downloadQrCodeJpg(selectedLetter.verificationCode || '', selectedLetter.title);
+                          if (success) {
+                            triggerToast('QR Code JPG berhasil diunduh!', 'success');
+                          } else {
+                            triggerToast('Gagal mengunduh QR Code.', 'error');
+                          }
+                        }}
+                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold py-2 rounded-xl text-xs transition duration-150 shadow"
+                      >
+                        <Download size={14} />
+                        <span>Unduh QR Code (JPG)</span>
                       </button>
                     </div>
                   )}

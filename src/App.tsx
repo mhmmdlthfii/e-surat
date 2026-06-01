@@ -64,7 +64,13 @@ import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
   const [db, setDb] = useState(getDB());
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'incoming' | 'outgoing' | 'templates' | 'esign' | 'verify' | 'users' | 'audit' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'incoming' | 'outgoing' | 'templates' | 'esign' | 'verify' | 'users' | 'audit' | 'settings'>(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.has('code') || window.location.hash.includes('verify') || window.location.hash.includes('code=')) {
+      return 'verify';
+    }
+    return 'dashboard';
+  });
   
   // Theme state
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -98,7 +104,18 @@ export default function App() {
   const [notifications, setNotifications] = useState<Notification[]>(db.notifications);
 
   // Verification redirect code
-  const [verificationCodeInput, setVerificationCodeInput] = useState('');
+  const [verificationCodeInput, setVerificationCodeInput] = useState<string>(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    let code = searchParams.get('code');
+    if (!code && window.location.hash) {
+      const questionIdx = window.location.hash.indexOf('?');
+      if (questionIdx !== -1) {
+        const hashParams = new URLSearchParams(window.location.hash.substring(questionIdx));
+        code = hashParams.get('code');
+      }
+    }
+    return code ? code.trim().toUpperCase() : '';
+  });
 
   // Mobile menu open
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -202,6 +219,8 @@ export default function App() {
         setVerificationCodeInput(cleanedCode);
         setActiveTab('verify');
         triggerToast(`Membuka Verifikasi Kode: ${cleanedCode}`, 'indigo');
+      } else if (window.location.hash.includes('verify')) {
+        setActiveTab('verify');
       }
     };
     checkUrlForCode();
@@ -346,6 +365,109 @@ export default function App() {
   };
 
   if (!isLoggedIn) {
+    if (activeTab === 'verify') {
+      return (
+        <div className={`${theme === 'dark' ? 'dark text-zinc-100 bg-zinc-950' : 'text-zinc-800 bg-zinc-50'} min-h-screen flex flex-col transition-colors duration-200 relative`}>
+          <div className="mesh-bg"></div>
+
+          {/* Global Toast Alerts in Public Verify Page */}
+          <AnimatePresence>
+            {toast && (
+              <motion.div 
+                initial={{ opacity: 0, y: -20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                className={`fixed top-5 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 px-5 py-3 rounded-2xl shadow-xl border text-xs font-semibold ${
+                  toast.type === 'success' ? 'bg-emerald-500/90 text-white border-emerald-400 backdrop-blur-md' : 
+                  toast.type === 'error' ? 'bg-red-500/90 text-white border-red-400 backdrop-blur-md' : 
+                  'bg-zinc-900/90 text-white border-blue-500/30 backdrop-blur-md'
+                }`}
+              >
+                {toast.type === 'success' ? (
+                  <ClipboardCheck size={18} />
+                ) : (
+                  <AlertCircle size={18} />
+                )}
+                <span className="font-medium">{toast.msg}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="min-h-screen flex flex-col justify-between transition-colors duration-200 lg:p-4">
+            
+            {/* HEADER PUBLIC KEY VALIDATION */}
+            <header className="liquid-glass lg:rounded-3xl p-4 px-6 flex items-center justify-between sticky top-0 z-30 select-none shadow-md mb-4 lg:mb-0">
+              <div className="flex items-center gap-3">
+                <img 
+                  src={db.schoolSettings.logoUrl || "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&q=80&w=150"} 
+                  alt="Logo" 
+                  className="w-10 h-10 object-contain rounded-xl bg-white border border-zinc-200 p-0.5"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-1.5 text-xs text-zinc-900 dark:text-white font-extrabold font-sans">
+                    <span className="truncate max-w-[150px] sm:max-w-none">{db.schoolSettings.name}</span>
+                    <ChevronRight size={12} className="text-zinc-500" />
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">Verifikasi Dokumen</span>
+                  </div>
+                  <span className="text-[9px] text-zinc-500 dark:text-zinc-400 font-mono tracking-wide">SIMAHAT PUBLIC PORTAL</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                {/* Realtime dynamic WIB Tick Indicator */}
+                <div className="hidden md:flex items-center space-x-1.5 border border-zinc-250 dark:border-zinc-800 bg-zinc-100/50 dark:bg-zinc-950/20 px-2.5 py-1 rounded-full text-[10px] font-mono text-zinc-700 dark:text-zinc-300 font-bold">
+                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                  <span>{timeStr}</span>
+                </div>
+
+                {/* Theme Toggle Button */}
+                <button 
+                  id="btn_toggle_theme_public"
+                  onClick={handleToggleTheme}
+                  className="p-2 border border-zinc-300 dark:border-zinc-800 hover:bg-zinc-100/60 dark:hover:bg-zinc-900/60 rounded-xl transition cursor-pointer text-zinc-700 dark:text-zinc-200"
+                  title="Silihkan Modus Warna"
+                >
+                  {theme === 'light' ? (
+                    <Moon size={16} />
+                  ) : (
+                    <Sun size={16} className="text-yellow-400 animate-spin-slow" />
+                  )}
+                </button>
+
+                <button
+                  onClick={() => {
+                    setActiveTab('dashboard'); // take them back to login page
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-90 text-white font-bold text-xs rounded-xl transition shadow flex items-center gap-1"
+                >
+                  <Lock size={12} />
+                  <span>Login Admin</span>
+                </button>
+              </div>
+            </header>
+
+            {/* MAIN PORTAL AREA */}
+            <main className="flex-1 max-w-4xl w-full mx-auto p-4 py-8">
+              <QRVerification 
+                initialCode={verificationCodeInput}
+                triggerToast={triggerToast}
+              />
+            </main>
+
+            {/* FOOTER */}
+            <footer className="liquid-glass lg:rounded-t-3xl p-4 px-6 border-t border-zinc-200/50 dark:border-zinc-800/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 select-none text-[10px] text-zinc-700 dark:text-zinc-300 font-mono text-center">
+              <span>© 2026 SMP Islam Al Hikmah Mayong Jepara. Hak Cipta Dilindungi.</span>
+              <span>
+                Powered by <a href="https://educita.id" target="_blank" rel="noopener noreferrer" className="font-extrabold text-blue-600 dark:text-cyan-400 hover:underline">educita.id</a> -- <span className="font-extrabold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent dark:from-blue-400 dark:to-cyan-300 font-serif">Muhammad Luthfi</span> v2026
+              </span>
+            </footer>
+
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={`${theme === 'dark' ? 'dark text-zinc-100 bg-zinc-950' : 'text-zinc-800 bg-zinc-50'} min-h-screen flex flex-col transition-colors duration-200 relative`}>
         <div className="mesh-bg"></div>
