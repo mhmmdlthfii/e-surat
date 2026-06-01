@@ -38,7 +38,7 @@ const DEFAULT_STEMPEL = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2
 const DEFAULT_SIGNATURE = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
   <path d="M 20,45 C 35,40 50,15 55,30 C 60,45 40,65 50,60 C 60,55 75,30 85,35 C 95,40 80,60 105,45" fill="none" stroke="%231e3a8a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
   <line x1="15" y1="52" x2="105" y2="48" stroke="%231e3a8a" stroke-width="1.5" stroke-linecap="round"/>
-  <text x="50" y="72" fill="%231e3a8a" font-family="'Poppins', sans-serif" font-size="6.5" font-style="italic">H. Slamet Riyadi</text>
+  <text x="50" y="72" fill="%231e3a8a" font-family="'Poppins', sans-serif" font-size="5.5" font-style="italic">M. Syafi'i, S.ThI</text>
 </svg>`;
 
 export const DB_KEYS = {
@@ -77,8 +77,8 @@ const INITIAL_USERS: User[] = [
   {
     id: 'u-2',
     username: 'kepsek',
-    name: 'H. Slamet Riyadi, M.Pd.',
-    email: 'slamet.riyadi@alhikmahmayong.sch.id',
+    name: "M. Syafi'i, S.ThI",
+    email: 'syafii@alhikmahmayong.sch.id',
     role: 'Kepala Sekolah',
     isActive: true,
     password: 'kepsek',
@@ -113,7 +113,7 @@ const INITIAL_SCHOOL_SETTINGS: SchoolSettings = {
   email: "info@smpislamalhikmahmayong.sch.id",
   phone: "(0291) 4272111",
   website: "smpislamalhikmahmayong.sch.id",
-  headmasterName: "H. Slamet Riyadi, M.Pd.",
+  headmasterName: "M. Syafi'i, S.ThI",
   headmasterNip: "19740816 200212 1 003"
 };
 
@@ -229,7 +229,7 @@ const INITIAL_DISPOSITIONS: Disposition[] = [
     id: 'disp-1',
     letterId: 'in-1',
     senderId: 'u-2',
-    senderName: 'H. Slamet Riyadi, M.Pd.',
+    senderName: "M. Syafi'i, S.ThI",
     receiverRole: 'Operator',
     note: 'Mohon Operator (Rizky Ramadhan) segera menyiapkan kelengkapan VHD Komputer dan mendampingi saya ke acara workshop tersebut. Buatkan Surat Tugas delegasi sekalian.',
     date: '2026-05-18',
@@ -239,7 +239,7 @@ const INITIAL_DISPOSITIONS: Disposition[] = [
     id: 'disp-2',
     letterId: 'in-2',
     senderId: 'u-2',
-    senderName: 'H. Slamet Riyadi, M.Pd.',
+    senderName: "M. Syafi'i, S.ThI",
     receiverRole: 'Wakasek Kesiswaan',
     note: 'Koordinasikan dengan wali kelas VII dan VIII untuk penjadwalan screening kesehatan anak-anak. Amankan sarana Musholla.',
     date: '2026-05-22',
@@ -255,7 +255,7 @@ const INITIAL_OUTGOING_LETTERS: OutgoingLetter[] = [
     subject: 'Menugaskan Guru/Operator menghadiri Workshop ANBK 2026',
     letterDate: '2026-06-01',
     receiver: 'Rizky Ramadhan (Operator/Proktor ANBK)',
-    responsiblePerson: 'H. Slamet Riyadi, M.Pd.',
+    responsiblePerson: "M. Syafi'i, S.ThI",
     category: 'Surat Tugas',
     status: 'Terbit',
     fileContent: `SURAT TUGAS\nNomor: 045/ST/SMPI-AH/V/2026\n\nMenimbang: Kelancaran pelaksanaan Asesmen Nasional Berbasis Komputer (ANBK) tahun 2026.\n\nDasar: Surat Dinas Pendidikan Pemuda dan Olahraga Kabupaten Jepara nomor 421.3/218/2026 perihal Sosialisasi ANBK.\n\nMEMERINTAHKAN:\nKepada: RIZKY RAMADHAN\nJabatan: Operator / Proktor IT SMP Islam Al Hikmah\n\nUntuk: Menghadiri Workshop Teknis Persiapan ANBK Tingkat SMP di Kabupaten Jepara pada hari Rabu, 10 Juni 2026.\n\nDemikian surat tugas ini dibuat untuk dilaksanakan dengan tanggung jawab penuh.`,
@@ -263,7 +263,7 @@ const INITIAL_OUTGOING_LETTERS: OutgoingLetter[] = [
     verificationCode: 'SMH-2026-9E7B8',
     sha256Hash: '4a6b288590bf886dc0ccfbe8ff981ff3a8b27341ea22bfd3810287e07aab5fd1',
     signedAt: '2026-05-31T09:20:00Z',
-    signedBy: 'H. Slamet Riyadi, M.Pd.',
+    signedBy: "M. Syafi'i, S.ThI",
     qrCodeUrl: '#qr-1'
   },
   {
@@ -285,7 +285,7 @@ const INITIAL_OUTGOING_LETTERS: OutgoingLetter[] = [
     subject: 'Pembentukan Susunan Panitia Pengarah dan Pelaksana PPDB Sekolah',
     letterDate: '2026-05-30',
     receiver: 'Lailatul Fitriyah, S.Ak. (Ketua Panitia PPDB)',
-    responsiblePerson: 'H. Slamet Riyadi, M.Pd.',
+    responsiblePerson: "M. Syafi'i, S.ThI",
     category: 'Surat Keputusan',
     status: 'Disetujui',
     fileContent: `SURAT KEPUTUSAN KEPALA SMP ISLAM AL HIKMAH MAYONG\nNomor: 023/SK/SMPI-AH/V/2026\n\nTENTANG:\nSUSUNAN PANITIA PENERIMAAN PESERTA DIDIK BARU (PPDB) TAHUN AJARAN 2026/2027\n\nMenimbang:dst.\nMengingat:dst.\n\nMEMUTUSKAN:\nMenetapkan: \nSUSUNAN PANITIA PPDB SEPERTI MASUK PADA LAMPIRAN.\nKetua Panitia: LAILATUL FITRIYAH, S.Ak.\nSekretaris: RIZKY RAMADHAN\nBendahara: SRI WAHYUNI, S.Pd.\n\nKeputusan ini berlaku sejak tanggal ditetapkan dengan ketentuan apabila di kemudian hari terdapat kekeliruan, akan dilakukan perbaikan sebagaimana mestinya.`
@@ -348,7 +348,7 @@ Ditetapkan di: Mayong, [TANGGAL_SURAT]
 Kepala Sekolah,
 
 
-H. Slamet Riyadi, M.Pd.`,
+M. Syafi'i, S.ThI`,
     variables: ['NOMOR_SURAT', 'NAMA_PENERIMA_TUGAS', 'JABATAN', 'URAIAN_TUGAS', 'TANGGAL_TUGAS', 'LOKASI_TUGAS', 'TANGGAL_SURAT'],
     updatedAt: '2026-05-29T10:00:00Z',
     updatedBy: 'Achmad Fauzi, S.Pd.'
@@ -388,7 +388,7 @@ Mayong, [TANGGAL_SURAT]
 Kepala Sekolah,
 
 
-H. Slamet Riyadi, M.Pd.`,
+M. Syafi'i, S.ThI`,
     variables: ['NOMOR_SURAT', 'LAMPIRAN', 'NAMA_UNDANGAN', 'TANGGAL_RAPAT', 'WAKTU_RAPAT', 'TEMPAT_RAPAT', 'ACARA_RAPAT', 'TANGGAL_SURAT'],
     updatedAt: '2026-05-24T12:00:00Z',
     updatedBy: 'Lailatul Fitriyah, S.Ak.'
@@ -422,7 +422,7 @@ Pada Tanggal: [TANGGAL_SURAT]
 Kepala Sekolah,
 
 
-H. Slamet Riyadi, M.Pd.`,
+M. Syafi'i, S.ThI`,
     variables: ['NOMOR_SURAT', 'NAMA_SISWA', 'NOMOR_INDUK', 'KELAS_SISWA', 'PERUNTUKAN_SURAT', 'TANGGAL_SURAT'],
     updatedAt: '2026-05-20T14:30:00Z',
     updatedBy: 'Lailatul Fitriyah, S.Ak.'

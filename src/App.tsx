@@ -52,7 +52,12 @@ import {
   AlertCircle,
   Eye,
   Menu,
-  X
+  X,
+  RefreshCw,
+  Clock,
+  CheckCircle2,
+  AlertTriangle,
+  ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -876,7 +881,467 @@ export default function App() {
           {/* MAIN DYNAMIC TAB CONTENT BODY AREA */}
           <div className="flex-1 p-6 space-y-6">
             
-            {activeTab === 'dashboard' && (
+            {activeTab === 'dashboard' && currentUser.role === 'Kepala Sekolah' && (
+              <div id="dashboard_tab_kepsek" className="space-y-6">
+                
+                {/* Branding Banner with Signature Status */}
+                <div className="glass rounded-3xl p-6 shadow-sm relative overflow-hidden flex flex-col md:flex-row items-center gap-6 border border-zinc-250 dark:border-zinc-800">
+                  <div className="absolute right-0 top-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                  <img 
+                    src={db.schoolSettings.logoUrl} 
+                    alt="Logo Al Hikmah" 
+                    className="w-20 h-20 object-contain rounded-2xl filter drop-shadow-md bg-white p-1"
+                  />
+                  <div className="space-y-2 flex-1 text-center md:text-left">
+                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                      <span className="text-xs bg-orange-500/15 text-orange-600 dark:text-orange-400 px-3 py-1 rounded-full font-extrabold w-max mx-auto md:mx-0">Sertifikat Digital Aktif</span>
+                      <span className="text-xs bg-zinc-150 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 px-3 py-1 rounded-full font-extrabold w-max mx-auto md:mx-0 font-mono">NIP: {db.schoolSettings.headmasterNip}</span>
+                    </div>
+                    <h2 className="text-lg font-extrabold text-zinc-900 dark:text-white leading-tight">
+                      Selamat Datang Kembali, {db.schoolSettings.headmasterName}
+                    </h2>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium max-w-xl">
+                      Anda berada di Portal Komando Kepala Sekolah. Di sini Anda dapat memverifikasi draf surat dinas sebelum dibubuhi tanda tangan elektronik (TTE) sah, menerbitkan QR code unik, serta melacak disposisi surat masuk.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Dashboard Stats tailored for Kepala Sekolah */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div 
+                    onClick={() => setActiveTab('esign')}
+                    className="glass rounded-2xl p-5 hover:shadow-md transition cursor-pointer border border-zinc-200 dark:border-zinc-800/80 hover:border-orange-500/30"
+                  >
+                    <div className="flex items-center justify-between text-zinc-400">
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Menunggu TTE</span>
+                      <Clock size={16} className="text-orange-500" />
+                    </div>
+                    <div className="text-3xl font-extrabold font-mono text-zinc-900 dark:text-white mt-3">{stats.pendingReviewCount}</div>
+                    <span className="text-[10px] text-zinc-450 dark:text-zinc-500">Surat keluar butuh paraf/tandatangan</span>
+                  </div>
+
+                  <div 
+                    onClick={() => setActiveTab('incoming')}
+                    className="glass rounded-2xl p-5 hover:shadow-md transition cursor-pointer border border-zinc-200 dark:border-zinc-800/80 hover:border-blue-500/30"
+                  >
+                    <div className="flex items-center justify-between text-zinc-400">
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Surat Masuk Baru</span>
+                      <Inbox size={16} className="text-blue-500" />
+                    </div>
+                    <div className="text-3xl font-extrabold font-mono text-zinc-900 dark:text-white mt-3">
+                      {db.incomingLetters.filter(l => l.status === 'Diterima').length}
+                    </div>
+                    <span className="text-[10px] text-zinc-450 dark:text-zinc-500">Belum dididposisikan ke staf</span>
+                  </div>
+
+                  <div 
+                    onClick={() => setActiveTab('outgoing')}
+                    className="glass rounded-2xl p-5 hover:shadow-md transition cursor-pointer border border-zinc-200 dark:border-zinc-800/80 hover:border-emerald-500/30"
+                  >
+                    <div className="flex items-center justify-between text-zinc-400">
+                      <span className="text-[10px] font-bold uppercase tracking-widest">TTE Sukses Terbit</span>
+                      <CheckCircle2 size={16} className="text-emerald-500" />
+                    </div>
+                    <div className="text-3xl font-extrabold font-mono text-zinc-900 dark:text-white mt-3">{stats.verifiedCount}</div>
+                    <span className="text-[10px] text-zinc-450 dark:text-zinc-500">Arsip surat keluar ttd digital aktif</span>
+                  </div>
+
+                  <div 
+                    onClick={() => setActiveTab('audit')}
+                    className="glass rounded-2xl p-5 hover:shadow-md transition cursor-pointer border border-zinc-200 dark:border-zinc-800/80 hover:border-indigo-500/30"
+                  >
+                    <div className="flex items-center justify-between text-zinc-400">
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Log Aktivitas</span>
+                      <History size={16} className="text-indigo-500" />
+                    </div>
+                    <div className="text-3xl font-extrabold font-mono text-zinc-900 dark:text-white mt-3">
+                      {db.auditLogs.filter(l => l.role === 'Kepala Sekolah').length}
+                    </div>
+                    <span className="text-[10px] text-zinc-455 dark:text-zinc-495">Tindakan Anda dalam sistem</span>
+                  </div>
+                </div>
+
+                {/* Main Work Queues */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  
+                  {/* Queue 1: Letters awaiting Digital Signature */}
+                  <div className="glass rounded-3xl p-5 border border-zinc-250 dark:border-zinc-800 space-y-4 shadow-sm flex flex-col">
+                    <div className="flex items-center justify-between border-b border-zinc-150 dark:border-zinc-800 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="p-1.5 bg-orange-500/10 text-orange-500 rounded-lg">
+                          <FileSignature size={15} />
+                        </span>
+                        <div>
+                          <h3 className="text-xs font-extrabold text-zinc-900 dark:text-white">Butuh Tanda Tangan Elektronik (TTE)</h3>
+                          <p className="text-[9px] text-zinc-500">Tinjau draf materi surat dan bubuhkan tanda tangan digital Anda</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 bg-orange-500/10 text-orange-600 rounded-full font-mono">
+                        {db.outgoingLetters.filter(l => l.status === 'Menunggu Persetujuan').length} Berkas
+                      </span>
+                    </div>
+
+                    <div className="space-y-3 max-h-80 overflow-y-auto pr-1 flex-1">
+                      {db.outgoingLetters.filter(l => l.status === 'Menunggu Persetujuan').length === 0 ? (
+                        <div className="py-12 text-center space-y-2">
+                          <CheckCircle2 size={36} className="text-emerald-500 mx-auto animate-pulse" />
+                          <p className="text-xs font-bold text-zinc-850 dark:text-zinc-200">Seluruh Berkas Telah Tuntas!</p>
+                          <p className="text-[10px] text-zinc-500">Tidak ada pengajuan surat keluar baru yang butuh persetujuan Anda saat ini.</p>
+                        </div>
+                      ) : (
+                        db.outgoingLetters.filter(l => l.status === 'Menunggu Persetujuan').map(letter => (
+                          <div 
+                            key={letter.id} 
+                            className="p-3 bg-zinc-50/50 dark:bg-zinc-1000/25 border border-zinc-200 dark:border-zinc-850 rounded-xl hover:border-orange-500/20 transition flex justify-between items-center gap-4"
+                          >
+                            <div className="min-w-0 space-y-1 flex-1">
+                              <div className="text-[9px] font-mono bg-zinc-200/50 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-650 dark:text-zinc-400 w-max truncate">
+                                No: {letter.letterNumber}
+                              </div>
+                              <h4 className="font-bold text-xs text-zinc-800 dark:text-zinc-200 truncate">{letter.title}</h4>
+                              <p className="text-[10px] text-zinc-500 truncate">Hal: {letter.subject}</p>
+                            </div>
+                            <button 
+                              onClick={() => {
+                                setActiveTab('esign');
+                                triggerToast(`Tinjau draf surat: ${letter.title}`, 'indigo');
+                              }}
+                              className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 shrink-0 cursor-pointer shadow-sm transition"
+                            >
+                              <span>Tinjau</span>
+                              <ChevronRight size={10} />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Queue 2: Incoming Letters needing Disposition */}
+                  <div className="glass rounded-3xl p-5 border border-zinc-250 dark:border-zinc-800 space-y-4 shadow-sm flex flex-col">
+                    <div className="flex items-center justify-between border-b border-zinc-150 dark:border-zinc-800 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="p-1.5 bg-blue-500/10 text-blue-500 rounded-lg">
+                          <Inbox size={15} />
+                        </span>
+                        <div>
+                          <h3 className="text-xs font-extrabold text-zinc-900 dark:text-white">Surat Masuk Belum Didisposisikan</h3>
+                          <p className="text-[9px] text-zinc-500">Buat disposisi delegasi instruksi kepada jajaran staf / TU</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 bg-blue-500/10 text-blue-600 rounded-full font-mono">
+                        {db.incomingLetters.filter(l => l.status === 'Diterima').length} Berkas
+                      </span>
+                    </div>
+
+                    <div className="space-y-3 max-h-80 overflow-y-auto pr-1 flex-1">
+                      {db.incomingLetters.filter(l => l.status === 'Diterima').length === 0 ? (
+                        <div className="py-12 text-center space-y-2">
+                          <CheckCircle2 size={36} className="text-emerald-500 mx-auto" />
+                          <p className="text-xs font-bold text-zinc-850 dark:text-zinc-200">Disposisi Selesai!</p>
+                          <p className="text-[10px] text-zinc-500">Semua surat masuk telah Anda evaluasi dan didisposisikan dengan aman.</p>
+                        </div>
+                      ) : (
+                        db.incomingLetters.filter(l => l.status === 'Diterima').map(letter => (
+                          <div 
+                            key={letter.id} 
+                            className="p-3 bg-zinc-50/50 dark:bg-zinc-1000/25 border border-zinc-200 dark:border-zinc-850 rounded-xl hover:border-blue-500/20 transition flex justify-between items-center gap-4"
+                          >
+                            <div className="min-w-0 space-y-1 flex-1">
+                              <div className="text-[9px] text-blue-500 dark:text-blue-400 font-extrabold tracking-wide uppercase">{letter.category}</div>
+                              <h4 className="font-bold text-xs text-zinc-850 dark:text-zinc-200 truncate">{letter.subject}</h4>
+                              <p className="text-[10px] text-zinc-500 truncate font-mono">Dari: {letter.sender}</p>
+                            </div>
+                            <button 
+                              onClick={() => {
+                                setActiveTab('incoming');
+                                triggerToast(`Membuka Lembar Disposisi Surat Masuk`, 'indigo');
+                              }}
+                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 shrink-0 cursor-pointer shadow-sm transition"
+                            >
+                              <span>Disposisi</span>
+                              <ChevronRight size={10} />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Principal Quick Actions Tray */}
+                <div className="glass rounded-3xl p-5 border border-zinc-200 dark:border-zinc-800">
+                  <h4 className="text-[10px] font-bold text-zinc-400 mb-3 uppercase tracking-wider block">Jalan Pintas Aksi Cepat</h4>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-center">
+                    <button 
+                      onClick={() => setActiveTab('esign')}
+                      className="p-4 bg-zinc-50 dark:bg-zinc-950/30 border border-zinc-200 dark:border-zinc-850 rounded-2xl hover:border-orange-500/40 hover:bg-orange-500/5 transition cursor-pointer flex flex-col items-center gap-1 w-full"
+                    >
+                      <FileSignature size={18} className="text-orange-500" />
+                      <span className="text-xs font-extrabold text-zinc-800 dark:text-zinc-200 mt-1">Editor E-Signature TTE</span>
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('incoming')}
+                      className="p-4 bg-zinc-50 dark:bg-zinc-950/30 border border-zinc-200 dark:border-zinc-850 rounded-2xl hover:border-blue-500/40 hover:bg-blue-500/5 transition cursor-pointer flex flex-col items-center gap-1 w-full"
+                    >
+                      <Inbox size={18} className="text-blue-500" />
+                      <span className="text-xs font-extrabold text-zinc-800 dark:text-zinc-200 mt-1">Buka Lembar Disposisi</span>
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('verify')}
+                      className="p-4 bg-zinc-50 dark:bg-zinc-950/30 border border-zinc-200 dark:border-zinc-850 rounded-2xl hover:border-emerald-500/40 hover:bg-emerald-500/5 transition cursor-pointer flex flex-col items-center gap-1 w-full"
+                    >
+                      <QrCode size={18} className="text-emerald-500" />
+                      <span className="text-xs font-extrabold text-zinc-800 dark:text-zinc-200 mt-1">Pindai Verifikasi QR</span>
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('settings')}
+                      className="p-4 bg-zinc-50 dark:bg-zinc-950/30 border border-zinc-200 dark:border-zinc-850 rounded-2xl hover:border-indigo-500/40 hover:bg-indigo-500/5 transition cursor-pointer flex flex-col items-center gap-1 w-full"
+                    >
+                      <Settings size={18} className="text-indigo-500" />
+                      <span className="text-xs font-extrabold text-zinc-800 dark:text-zinc-200 mt-1">Kop & Identitas Sekolah</span>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {activeTab === 'dashboard' && currentUser.role === 'Tata Usaha' && (
+              <div id="dashboard_tab_tatausaha" className="space-y-6">
+                
+                {/* Branding Banner for TU */}
+                <div className="glass rounded-3xl p-6 shadow-sm relative overflow-hidden flex flex-col md:flex-row items-center gap-6 border border-zinc-250 dark:border-zinc-800">
+                  <div className="absolute right-0 top-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                  <img 
+                    src={db.schoolSettings.logoUrl} 
+                    alt="Logo Al Hikmah" 
+                    className="w-20 h-20 object-contain rounded-2xl filter drop-shadow-md bg-white p-1"
+                  />
+                  <div className="space-y-2 flex-1 text-center md:text-left">
+                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                      <span className="text-xs bg-purple-500/15 text-purple-600 dark:text-purple-400 px-3 py-1 rounded-full font-extrabold w-max mx-auto md:mx-0">Kaur Administrasi Tata Usaha</span>
+                      <span className="text-xs bg-zinc-150 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 px-3 py-1 rounded-full font-extrabold w-max mx-auto md:mx-0 font-mono">Ruang TU SIMAHAT</span>
+                    </div>
+                    <h2 className="text-lg font-extrabold text-zinc-900 dark:text-white leading-tight">
+                      Selamat Kerja Administrasi, {currentUser.name}
+                    </h2>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium max-w-xl">
+                      Anda berada di Ruang Pusat Kemudi Tata Usaha. Kelola nomor urut agenda, draf naskah keluar dari ribuan template siap pakai, kearsipan logistik berkas masuk, serta kirim permohonan tanda tangan elektronik langsung ke Kepala Sekolah.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Dashboard Stats tailored for Tata Usaha */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div 
+                    onClick={() => setActiveTab('outgoing')}
+                    className="glass rounded-2xl p-5 hover:shadow-md transition cursor-pointer border border-zinc-200 dark:border-zinc-800/80 hover:border-purple-500/30"
+                  >
+                    <div className="flex items-center justify-between text-zinc-400">
+                      <span className="text-[10px] font-bold uppercase tracking-widest font-sans">Draf Sedang Direvisi</span>
+                      <FileText size={16} className="text-purple-500" />
+                    </div>
+                    <div className="text-3xl font-extrabold font-mono text-zinc-900 dark:text-white mt-3">
+                      {db.outgoingLetters.filter(l => l.status === 'Draft' || l.status === 'Ditolak').length}
+                    </div>
+                    <span className="text-[10px] text-zinc-450 dark:text-zinc-500">Draf surat keluar internal TU</span>
+                  </div>
+
+                  <div 
+                    onClick={() => setActiveTab('outgoing')}
+                    className="glass rounded-2xl p-5 hover:shadow-md transition cursor-pointer border border-zinc-200 dark:border-zinc-800/80 hover:border-amber-500/30"
+                  >
+                    <div className="flex items-center justify-between text-zinc-400">
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Diajukan ke Kepsek</span>
+                      <Clock size={16} className="text-amber-500" />
+                    </div>
+                    <div className="text-3xl font-extrabold font-mono text-zinc-900 dark:text-white mt-3">{stats.pendingReviewCount}</div>
+                    <span className="text-[10px] text-zinc-450 dark:text-zinc-500">Surat menunggu persetujuan (TTE)</span>
+                  </div>
+
+                  <div 
+                    onClick={() => setActiveTab('templates')}
+                    className="glass rounded-2xl p-5 hover:shadow-md transition cursor-pointer border border-zinc-200 dark:border-zinc-800/80 hover:border-blue-500/30"
+                  >
+                    <div className="flex items-center justify-between text-zinc-400">
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Template Tersedia</span>
+                      <FileSignature size={16} className="text-blue-500" />
+                    </div>
+                    <div className="text-3xl font-extrabold font-mono text-zinc-900 dark:text-white mt-3">{db.templates.length}</div>
+                    <span className="text-[10px] text-zinc-450 dark:text-zinc-500">Format surat baku dinas aktif</span>
+                  </div>
+
+                  <div 
+                    onClick={() => setActiveTab('incoming')}
+                    className="glass rounded-2xl p-5 hover:shadow-md transition cursor-pointer border border-zinc-200 dark:border-zinc-800/80 hover:border-emerald-500/30"
+                  >
+                    <div className="flex items-center justify-between text-zinc-400">
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Buku Agenda Surat</span>
+                      <Inbox size={16} className="text-emerald-500" />
+                    </div>
+                    <div className="text-3xl font-extrabold font-mono text-zinc-900 dark:text-white mt-3">{stats.incomingCount}</div>
+                    <span className="text-[10px] text-zinc-450 dark:text-zinc-500">Total surat masuk terdaftar</span>
+                  </div>
+                </div>
+
+                {/* Main TU Queues */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  
+                  {/* Column 1: TU Active / Rejected Drafts */}
+                  <div className="glass rounded-3xl p-5 border border-zinc-250 dark:border-zinc-800 space-y-4 shadow-sm flex flex-col">
+                    <div className="flex items-center justify-between border-b border-zinc-150 dark:border-zinc-800 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="p-1.5 bg-purple-500/10 text-purple-500 rounded-lg">
+                          <FileText size={15} />
+                        </span>
+                        <div>
+                          <h3 className="text-xs font-extrabold text-zinc-900 dark:text-white">Kelola Draf & Revisi Surat</h3>
+                          <p className="text-[9px] text-zinc-500">Ajukan draf surat baru untuk ditandatangani Kepala Sekolah</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 bg-purple-500/10 text-purple-600 rounded-full font-mono">
+                        {db.outgoingLetters.filter(l => l.status === 'Draft' || l.status === 'Ditolak').length} Berkas
+                      </span>
+                    </div>
+
+                    <div className="space-y-3 max-h-80 overflow-y-auto pr-1 flex-1">
+                      {db.outgoingLetters.filter(l => l.status === 'Draft' || l.status === 'Ditolak').length === 0 ? (
+                        <div className="py-12 text-center space-y-2">
+                          <CheckCircle2 size={36} className="text-emerald-500 mx-auto" />
+                          <p className="text-xs font-bold text-zinc-850 dark:text-zinc-200">Draf Selesai Diajukan!</p>
+                          <p className="text-[10px] text-zinc-500">Tidak ada draf yang mangkrak atau ditolak. Semua surat keluar siap terbit.</p>
+                          <button 
+                            onClick={() => {
+                              setActiveTab('outgoing');
+                              triggerToast('Membuka tab administrasi surat keluar baru!', 'indigo');
+                            }}
+                            className="text-xs text-blue-500 font-extrabold hover:underline"
+                          >
+                            + Buat Draf Baru
+                          </button>
+                        </div>
+                      ) : (
+                        db.outgoingLetters.filter(l => l.status === 'Draft' || l.status === 'Ditolak').map(letter => (
+                          <div 
+                            key={letter.id} 
+                            className={`p-3 border rounded-xl transition flex justify-between items-center gap-4 ${letter.status === 'Ditolak' ? 'bg-red-500/5 border-red-500/20' : 'bg-zinc-50/50 dark:bg-zinc-1000/25 border-zinc-200/50 dark:border-zinc-850'}`}
+                          >
+                            <div className="min-w-0 space-y-1 flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <span className={`text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded ${letter.status === 'Ditolak' ? 'bg-red-500/10 text-red-650' : 'bg-purple-500/10 text-purple-650'}`}>
+                                  {letter.status}
+                                </span>
+                                <span className="text-[9px] text-zinc-400 font-mono">ID: {letter.id}</span>
+                              </div>
+                              <h4 className="font-bold text-xs text-zinc-850 dark:text-zinc-200 truncate">{letter.title}</h4>
+                              {letter.rejectionNote && (
+                                <p className="text-[10px] text-red-600 dark:text-red-400 italic truncate">Alasan: {letter.rejectionNote}</p>
+                              )}
+                            </div>
+                            <button 
+                              onClick={() => {
+                                setActiveTab('outgoing');
+                                triggerToast(`Memulai edit draf surat: ${letter.title}`, 'indigo');
+                              }}
+                              className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 shrink-0 cursor-pointer shadow-sm transition"
+                            >
+                              <span>Edit Draf</span>
+                              <ChevronRight size={10} />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Column 2: Quick Template Usage */}
+                  <div className="glass rounded-3xl p-5 border border-zinc-250 dark:border-zinc-800 space-y-4 shadow-sm flex flex-col">
+                    <div className="flex items-center justify-between border-b border-zinc-150 dark:border-zinc-800 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="p-1.5 bg-blue-500/10 text-blue-500 rounded-lg">
+                          <FileSignature size={15} />
+                        </span>
+                        <div>
+                          <h3 className="text-xs font-extrabold text-zinc-900 dark:text-white">Gunakan Template Baku</h3>
+                          <p className="text-[9px] text-zinc-500">Pilih format kop & naskah untuk pendaftaran instant</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 bg-blue-500/10 text-blue-600 rounded-full font-mono">
+                        {db.templates.length} Pilihan
+                      </span>
+                    </div>
+
+                    <div className="space-y-3 max-h-80 overflow-y-auto pr-1 flex-1">
+                      {db.templates.map(tpl => (
+                        <div 
+                          key={tpl.id} 
+                          className="p-3 bg-zinc-50/50 dark:bg-zinc-1000/25 border border-zinc-200 dark:border-zinc-850 rounded-xl hover:border-blue-500/25 transition space-y-2"
+                        >
+                          <div className="flex justify-between items-center">
+                            <span className="text-[8px] font-mono bg-blue-500/10 text-blue-600 dark:text-blue-400 font-extrabold px-1.5 py-0.5 rounded tracking-wide uppercase">
+                              {tpl.code}
+                            </span>
+                            <span className="text-[8px] text-zinc-400">Pembaruan: {tpl.updatedBy.split(',')[0]}</span>
+                          </div>
+                          <div className="font-bold text-xs text-zinc-850 dark:text-zinc-200">{tpl.name}</div>
+                          <button 
+                            onClick={() => {
+                              setActiveTab('templates');
+                              triggerToast(`Memuat template: ${tpl.name}`, 'indigo');
+                            }}
+                            className="w-full py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-blue-600 hover:text-white rounded-lg text-[10px] font-extrabold text-zinc-700 dark:text-zinc-300 transition flex items-center justify-center gap-1 cursor-pointer"
+                          >
+                            <span>Gunakan Format Ini</span>
+                            <ChevronRight size={10} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Tata Usaha Quick Actions Tray */}
+                <div className="glass rounded-3xl p-5 border border-zinc-200 dark:border-zinc-800">
+                  <h4 className="text-[10px] font-bold text-zinc-400 mb-3 uppercase tracking-wider block">Jalan Pintas Administrasi Fast-Track</h4>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-center">
+                    <button 
+                      onClick={() => setActiveTab('outgoing')}
+                      className="p-4 bg-zinc-50 dark:bg-zinc-950/30 border border-zinc-200 dark:border-zinc-850 rounded-2xl hover:border-purple-500/40 hover:bg-purple-500/5 transition cursor-pointer flex flex-col items-center gap-1 w-full"
+                    >
+                      <Send size={18} className="text-purple-500" />
+                      <span className="text-xs font-extrabold text-zinc-800 dark:text-zinc-200 mt-1">Kirim Permohonan TTE</span>
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('incoming')}
+                      className="p-4 bg-zinc-50 dark:bg-zinc-950/30 border border-zinc-200 dark:border-zinc-850 rounded-2xl hover:border-emerald-500/40 hover:bg-emerald-500/5 transition cursor-pointer flex flex-col items-center gap-1 w-full"
+                    >
+                      <Inbox size={18} className="text-emerald-500" />
+                      <span className="text-xs font-extrabold text-zinc-800 dark:text-zinc-200 mt-1">Catat Agenda Surat Masuk</span>
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('templates')}
+                      className="p-4 bg-zinc-50 dark:bg-zinc-950/30 border border-zinc-200 dark:border-zinc-850 rounded-2xl hover:border-blue-500/40 hover:bg-blue-500/5 transition cursor-pointer flex flex-col items-center gap-1 w-full"
+                    >
+                      <FileSignature size={18} className="text-blue-500" />
+                      <span className="text-xs font-extrabold text-zinc-800 dark:text-zinc-200 mt-1">Kelola Template Surat</span>
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('verify')}
+                      className="p-4 bg-zinc-50 dark:bg-zinc-950/30 border border-zinc-200 dark:border-zinc-850 rounded-2xl hover:border-zinc-500/40 hover:bg-zinc-500/5 transition cursor-pointer flex flex-col items-center gap-1 w-full"
+                    >
+                      <QrCode size={18} className="text-zinc-500" />
+                      <span className="text-xs font-extrabold text-zinc-800 dark:text-zinc-200 mt-1">Pindai Verifikasi QR</span>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {activeTab === 'dashboard' && (currentUser.role === 'Super Admin' || currentUser.role === 'Operator') && (
               <div id="dashboard_tab_root" className="space-y-6">
                 
                 {/* School branding Banner (Glassmorphism) */}
@@ -1034,6 +1499,7 @@ export default function App() {
                 currentUserRole={currentUser.role}
                 switchActiveUser={handleSwitchUser}
                 triggerToast={triggerToast}
+                onDatabaseUpdate={() => setDb(getDB())}
               />
             )}
 

@@ -127,7 +127,7 @@ export default function ESignature({ currentUserId, currentUserRole, triggerToas
               className="max-h-36 max-w-[200px] object-contain filter drop-shadow-sm select-none"
             />
             <div className="absolute bottom-2 inset-x-0 text-center text-[10px] font-mono tracking-wide text-zinc-400">
-              Pratinjau Ttd: Prof. H. Slamet Riyadi, M.Pd.
+              Pratinjau Ttd: M. Syafi'i, S.ThI
             </div>
           </div>
 

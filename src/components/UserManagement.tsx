@@ -17,7 +17,9 @@ import {
   Check, 
   X,
   Sparkles,
-  Info
+  Info,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -26,9 +28,10 @@ interface UserManagementProps {
   currentUserRole: UserRole;
   switchActiveUser: (userId: string) => void;
   triggerToast: (msg: string, type: 'success' | 'indigo' | 'error') => void;
+  onDatabaseUpdate?: () => void;
 }
 
-export default function UserManagement({ currentUserId, currentUserRole, switchActiveUser, triggerToast }: UserManagementProps) {
+export default function UserManagement({ currentUserId, currentUserRole, switchActiveUser, triggerToast, onDatabaseUpdate }: UserManagementProps) {
   const [db, setDb] = useState(getDB());
   const [isNewOpen, setIsNewOpen] = useState(false);
 
@@ -37,9 +40,18 @@ export default function UserManagement({ currentUserId, currentUserRole, switchA
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<UserRole>('Operator');
+  const [registerPassword, setRegisterPassword] = useState('smpislam1234');
+
+  // Password change modal state
+  const [selectedUserForPasswordChange, setSelectedUserForPasswordChange] = useState<User | null>(null);
+  const [newPasswordValue, setNewPasswordValue] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const refreshState = () => {
     setDb(getDB());
+    if (onDatabaseUpdate) {
+      onDatabaseUpdate();
+    }
   };
 
   const handleCreateUser = (e: React.FormEvent) => {
@@ -63,6 +75,7 @@ export default function UserManagement({ currentUserId, currentUserRole, switchA
       name,
       email,
       role,
+      password: registerPassword || 'smpislam1234',
       isActive: true,
       avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=120'
     };
@@ -77,6 +90,7 @@ export default function UserManagement({ currentUserId, currentUserRole, switchA
     setName('');
     setEmail('');
     setRole('Operator');
+    setRegisterPassword('smpislam1234');
     refreshState();
   };
 
@@ -97,10 +111,38 @@ export default function UserManagement({ currentUserId, currentUserRole, switchA
     }
   };
 
-  const handleResetPassword = (userName: string) => {
-    pushAuditLog(currentUserId, 'RESET_PASSWORD', `Menerbitkan reset password default untuk akun ${userName}`, 'Pengguna');
-    alert(`[RESET_PASSWORD SUCCESS]\nKata sandi default untuk akun "${userName}" berhasil di-reset menjadi:\n\nsmpislam1234\n\nStaf silakan memperbarui saat pertama login kali.`);
-    triggerToast(`Sandi akun ${userName} berhasil di-reset!`, 'success');
+  const openPasswordChangeModal = (stafUser: User) => {
+    setSelectedUserForPasswordChange(stafUser);
+    setNewPasswordValue(stafUser.password || '');
+    setShowPassword(false);
+  };
+
+  const handleSavePassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUserForPasswordChange) return;
+
+    if (!newPasswordValue.trim()) {
+      triggerToast('Kata sandi tidak boleh kosong!', 'error');
+      return;
+    }
+
+    const currentUsers = [...db.users];
+    const idx = currentUsers.findIndex(u => u.id === selectedUserForPasswordChange.id);
+    if (idx !== -1) {
+      currentUsers[idx].password = newPasswordValue;
+      saveDB.users(currentUsers);
+      pushAuditLog(currentUserId, 'CHANGE_PASSWORD', `Mengubah kata sandi akun ${selectedUserForPasswordChange.name}`, 'Pengguna');
+      triggerToast(`Kata sandi akun ${selectedUserForPasswordChange.name} berhasil diubah!`, 'success');
+      
+      setSelectedUserForPasswordChange(null);
+      setNewPasswordValue('');
+      refreshState();
+    }
+  };
+
+  const handleResetToDefaultPassword = () => {
+    setNewPasswordValue('smpislam1234');
+    triggerToast('Isi input dengan kata sandi default ("smpislam1234"). Tekan Simpan Sandi!', 'indigo');
   };
 
   const handleDeleteUser = (userId: string, userName: string) => {
@@ -215,8 +257,8 @@ export default function UserManagement({ currentUserId, currentUserRole, switchA
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button 
-                          onClick={() => handleResetPassword(staf.username)}
-                          title="Reset Password Default"
+                          onClick={() => openPasswordChangeModal(staf)}
+                          title="Ubah & Reset Kata Sandi"
                           className="p-1.5 text-zinc-500 hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition"
                         >
                           <KeyRound size={14} />
@@ -313,6 +355,20 @@ export default function UserManagement({ currentUserId, currentUserRole, switchA
                   </select>
                 </div>
 
+                <div className="space-y-1.5 text-xs">
+                  <label className="text-xs font-bold text-zinc-420">Kata Sandi Akun <span className="text-red-500">*</span></label>
+                  <input 
+                    id="input_reg_password"
+                    type="text" 
+                    placeholder="Contoh: smpislam1234"
+                    value={registerPassword}
+                    onChange={(e) => setRegisterPassword(e.target.value)}
+                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 p-2 rounded-xl text-xs focus:outline-none"
+                    required
+                  />
+                  <p className="text-[10px] text-zinc-400">Kata sandi default untuk akun baru ini (default: smpislam1234).</p>
+                </div>
+
                 <div className="flex justify-end gap-2 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                   <button 
                     type="button" 
@@ -326,6 +382,88 @@ export default function UserManagement({ currentUserId, currentUserRole, switchA
                     className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-90 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md shadow-blue-500/10"
                   >
                     <span>Buat Akun</span>
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* UPDATE PASSWORD DIALOG */}
+      <AnimatePresence>
+        {selectedUserForPasswordChange && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col text-zinc-900 dark:text-white"
+            >
+              <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center bg-zinc-50 dark:bg-zinc-950/20">
+                <div className="flex items-center gap-2">
+                  <KeyRound className="text-blue-500" />
+                  <span className="font-bold text-sm">Ubah / Atur Kata Sandi Staf</span>
+                </div>
+                <button onClick={() => setSelectedUserForPasswordChange(null)} className="p-1.5 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-800">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSavePassword} className="p-6 space-y-4">
+                <div className="bg-zinc-50 dark:bg-zinc-950/40 p-3.5 rounded-xl border border-zinc-100 dark:border-zinc-850 space-y-1">
+                  <div className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Nama Akun Staf</div>
+                  <div className="font-bold text-zinc-800 dark:text-zinc-200 text-xs">
+                    {selectedUserForPasswordChange.name}
+                  </div>
+                  <div className="text-[10px] text-zinc-550 dark:text-zinc-450 font-mono">@{selectedUserForPasswordChange.username} | {selectedUserForPasswordChange.role}</div>
+                </div>
+
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-bold text-zinc-420">Kata Sandi Baru <span className="text-red-500">*</span></label>
+                    <button 
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-blue-500 text-[10px] font-bold hover:underline flex items-center gap-1 focus:outline-none"
+                    >
+                      {showPassword ? <EyeOff size={11} /> : <Eye size={11} />}
+                      <span>{showPassword ? 'Sembunyikan' : 'Tampilkan'}</span>
+                    </button>
+                  </div>
+                  <input 
+                    id="input_change_password"
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="Masukkan kata sandi baru"
+                    value={newPasswordValue}
+                    onChange={(e) => setNewPasswordValue(e.target.value)}
+                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-805 p-2 rounded-xl text-xs font-mono tracking-widest focus:outline-none text-zinc-900 dark:text-white"
+                    required
+                  />
+                  <div className="flex justify-between items-center pt-2">
+                    <button
+                      type="button"
+                      onClick={handleResetToDefaultPassword}
+                      className="text-[10px] text-indigo-500 font-bold hover:underline focus:outline-none"
+                    >
+                      Reset ke Default ('smpislam1234')
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                  <button 
+                    type="button" 
+                    onClick={() => setSelectedUserForPasswordChange(null)}
+                    className="border border-zinc-200 dark:border-zinc-850 text-zinc-650 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-4 py-2 rounded-xl text-xs font-semibold"
+                  >
+                    Batal
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-90 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md shadow-blue-500/10"
+                  >
+                    <span>Simpan Sandi</span>
                   </button>
                 </div>
               </form>

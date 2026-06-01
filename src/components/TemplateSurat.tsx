@@ -74,7 +74,7 @@ Mayong, [TANGGAL_SURAT]
 Kepala Sekolah,
 
 
-H. Slamet Riyadi, M.Pd.`);
+M. Syafi'i, S.ThI`);
     setIsNew(true);
     setIsEditOpen(true);
   };
