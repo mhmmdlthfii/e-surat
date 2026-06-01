@@ -8,7 +8,8 @@ import {
   getDB, 
   saveDB, 
   pushAuditLog, 
-  pushNotification 
+  pushNotification,
+  pullDBFromServer
 } from './db';
 import { 
   UserRole, 
@@ -201,6 +202,17 @@ export default function App() {
       setToast(null);
     }, 4500);
   };
+
+  // Initial database sync with the server-side persistent store
+  useEffect(() => {
+    const syncDbState = async () => {
+      const serverDb = await pullDBFromServer();
+      if (serverDb) {
+        setDb(serverDb);
+      }
+    };
+    syncDbState();
+  }, []);
 
   // Listen for scanned QR verification routes or deep links in URL
   useEffect(() => {

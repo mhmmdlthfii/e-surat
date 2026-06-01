@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { getDB } from '../db';
+import { getDB, pullDBFromServer } from '../db';
 import { OutgoingLetter } from '../types';
 import { 
   ShieldCheck, 
@@ -69,9 +69,9 @@ export default function QRVerification({ initialCode = '', triggerToast }: QRVer
     setDb(getDB());
   };
 
-  const handleVerify = (searchCode?: string) => {
-    // Read directly from getDB() to avoid asynchronous slate React state lag
-    const latestDb = getDB();
+  const handleVerify = async (searchCode?: string) => {
+    // Read directly from getDB() or server sync to avoid lag and enable cross-device scanning
+    const latestDb = await pullDBFromServer() || getDB();
     setDb(latestDb);
     
     const inputCode = searchCode || code;
@@ -83,7 +83,7 @@ export default function QRVerification({ initialCode = '', triggerToast }: QRVer
     }
 
     // Try finding by Verification Code (case insensitive) or UUID in the latest synchronous data
-    const found = latestDb.outgoingLetters.find(l => 
+    const found = latestDb.outgoingLetters.find((l: any) => 
       l.status === 'Terbit' && (
         (l.verificationCode && l.verificationCode.toLowerCase() === inputCode.trim().toLowerCase()) ||
         (l.uuid && l.uuid.toLowerCase() === inputCode.trim().toLowerCase())

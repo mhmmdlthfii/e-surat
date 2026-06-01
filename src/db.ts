@@ -561,16 +561,58 @@ export const getDB = () => {
   };
 };
 
+export const pushDBToServer = () => {
+  try {
+    const fullDb = getDB();
+    fetch('/api/db', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(fullDb)
+    }).catch(err => console.error('Error posting DB to server:', err));
+  } catch (error) {
+    console.error('Error in pushDBToServer:', error);
+  }
+};
+
+export const pullDBFromServer = async (): Promise<any> => {
+  try {
+    const res = await fetch('/api/db');
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+      // Save all keys to localStorage
+      if (data.users) setStorageItem(DB_KEYS.USERS, data.users);
+      if (data.incomingLetters) setStorageItem(DB_KEYS.INCOMING_LETTERS, data.incomingLetters);
+      if (data.dispositions) setStorageItem(DB_KEYS.DISPOSITIONS, data.dispositions);
+      if (data.outgoingLetters) setStorageItem(DB_KEYS.OUTGOING_LETTERS, data.outgoingLetters);
+      if (data.templates) setStorageItem(DB_KEYS.TEMPLATES, data.templates);
+      if (data.schoolSettings) setStorageItem(DB_KEYS.SCHOOL_SETTINGS, data.schoolSettings);
+      if (data.signatureConfig) setStorageItem(DB_KEYS.SIGNATURE_CONFIG, data.signatureConfig);
+      if (data.auditLogs) setStorageItem(DB_KEYS.AUDIT_LOGS, data.auditLogs);
+      if (data.notifications) setStorageItem(DB_KEYS.NOTIFICATIONS, data.notifications);
+      return getDB();
+    } else {
+      // Server is empty, initialize it by pushing the current client's default database state
+      pushDBToServer();
+    }
+  } catch (error) {
+    console.error('Failed to pull DB from server:', error);
+  }
+  return null;
+};
+
 export const saveDB = {
-  users: (data: User[]) => setStorageItem(DB_KEYS.USERS, data),
-  incomingLetters: (data: IncomingLetter[]) => setStorageItem(DB_KEYS.INCOMING_LETTERS, data),
-  dispositions: (data: Disposition[]) => setStorageItem(DB_KEYS.DISPOSITIONS, data),
-  outgoingLetters: (data: OutgoingLetter[]) => setStorageItem(DB_KEYS.OUTGOING_LETTERS, data),
-  templates: (data: LetterTemplate[]) => setStorageItem(DB_KEYS.TEMPLATES, data),
-  schoolSettings: (data: SchoolSettings) => setStorageItem(DB_KEYS.SCHOOL_SETTINGS, data),
-  signatureConfig: (data: ESignatureConfig) => setStorageItem(DB_KEYS.SIGNATURE_CONFIG, data),
-  auditLogs: (data: AuditLog[]) => setStorageItem(DB_KEYS.AUDIT_LOGS, data),
-  notifications: (data: Notification[]) => setStorageItem(DB_KEYS.NOTIFICATIONS, data)
+  users: (data: User[]) => { setStorageItem(DB_KEYS.USERS, data); pushDBToServer(); },
+  incomingLetters: (data: IncomingLetter[]) => { setStorageItem(DB_KEYS.INCOMING_LETTERS, data); pushDBToServer(); },
+  dispositions: (data: Disposition[]) => { setStorageItem(DB_KEYS.DISPOSITIONS, data); pushDBToServer(); },
+  outgoingLetters: (data: OutgoingLetter[]) => { setStorageItem(DB_KEYS.OUTGOING_LETTERS, data); pushDBToServer(); },
+  templates: (data: LetterTemplate[]) => { setStorageItem(DB_KEYS.TEMPLATES, data); pushDBToServer(); },
+  schoolSettings: (data: SchoolSettings) => { setStorageItem(DB_KEYS.SCHOOL_SETTINGS, data); pushDBToServer(); },
+  signatureConfig: (data: ESignatureConfig) => { setStorageItem(DB_KEYS.SIGNATURE_CONFIG, data); pushDBToServer(); },
+  auditLogs: (data: AuditLog[]) => { setStorageItem(DB_KEYS.AUDIT_LOGS, data); pushDBToServer(); },
+  notifications: (data: Notification[]) => { setStorageItem(DB_KEYS.NOTIFICATIONS, data); pushDBToServer(); }
 };
 
 // Log action helper
