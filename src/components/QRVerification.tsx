@@ -70,7 +70,10 @@ export default function QRVerification({ initialCode = '', triggerToast }: QRVer
   };
 
   const handleVerify = (searchCode?: string) => {
-    refreshState();
+    // Read directly from getDB() to avoid asynchronous slate React state lag
+    const latestDb = getDB();
+    setDb(latestDb);
+    
     const inputCode = searchCode || code;
     setHasSearched(true);
 
@@ -79,8 +82,8 @@ export default function QRVerification({ initialCode = '', triggerToast }: QRVer
       return;
     }
 
-    // Try finding by Verification Code (case insensitive) or UUID
-    const found = db.outgoingLetters.find(l => 
+    // Try finding by Verification Code (case insensitive) or UUID in the latest synchronous data
+    const found = latestDb.outgoingLetters.find(l => 
       l.status === 'Terbit' && (
         (l.verificationCode && l.verificationCode.toLowerCase() === inputCode.trim().toLowerCase()) ||
         (l.uuid && l.uuid.toLowerCase() === inputCode.trim().toLowerCase())
