@@ -43,12 +43,25 @@ export default function QRVerification({ initialCode = '', triggerToast }: QRVer
   }, [initialCode]);
 
   useEffect(() => {
-    // Check if there is a query parameter in our URL for simulation
-    const searchParams = new URLSearchParams(window.location.search);
-    const codeParam = searchParams.get('code');
+    // Get code from both search query and hash parameters
+    const getCodeFromUrl = () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      let codeParam = searchParams.get('code');
+      if (!codeParam && window.location.hash) {
+        const questionIdx = window.location.hash.indexOf('?');
+        if (questionIdx !== -1) {
+          const hashParams = new URLSearchParams(window.location.hash.substring(questionIdx));
+          codeParam = hashParams.get('code');
+        }
+      }
+      return codeParam;
+    };
+
+    const codeParam = getCodeFromUrl();
     if (codeParam) {
-      setCode(codeParam);
-      handleVerify(codeParam);
+      const cleanedCode = codeParam.trim().toUpperCase();
+      setCode(cleanedCode);
+      handleVerify(cleanedCode);
     }
   }, []);
 

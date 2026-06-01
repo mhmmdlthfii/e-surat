@@ -29,6 +29,7 @@ import ESignature from './components/ESignature';
 import AuditLogView from './components/AuditLogView';
 import SchoolSettings from './components/SchoolSettings';
 import UserManagement from './components/UserManagement';
+import DocQRCode from './components/DocQRCode';
 
 import { 
   LayoutDashboard, 
@@ -183,6 +184,30 @@ export default function App() {
       setToast(null);
     }, 4500);
   };
+
+  // Listen for scanned QR verification routes or deep links in URL
+  useEffect(() => {
+    const checkUrlForCode = () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      let code = searchParams.get('code');
+      if (!code && window.location.hash) {
+        const questionIdx = window.location.hash.indexOf('?');
+        if (questionIdx !== -1) {
+          const hashParams = new URLSearchParams(window.location.hash.substring(questionIdx));
+          code = hashParams.get('code');
+        }
+      }
+      if (code) {
+        const cleanedCode = code.trim().toUpperCase();
+        setVerificationCodeInput(cleanedCode);
+        setActiveTab('verify');
+        triggerToast(`Membuka Verifikasi Kode: ${cleanedCode}`, 'indigo');
+      }
+    };
+    checkUrlForCode();
+    window.addEventListener('hashchange', checkUrlForCode);
+    return () => window.removeEventListener('hashchange', checkUrlForCode);
+  }, []);
 
   const handleSwitchTab = (tab: typeof activeTab) => {
     setActiveTab(tab);
@@ -572,9 +597,10 @@ export default function App() {
 
               {/* QR validation footer */}
               <div className="mt-12 border-t border-zinc-200 pt-3 flex items-center gap-4 text-[10px] text-zinc-500">
-                <div 
-                  className="w-16 h-16 bg-white border border-zinc-200 p-0.5 rounded-lg flex-shrink-0"
-                  dangerouslySetInnerHTML={{ __html: printLetter.qrCodeUrl ? printLetter.qrCodeUrl.replace('data:image/svg+xml;utf8,', '') : '' }}
+                <DocQRCode 
+                  value={`${window.location.origin}/#verify?code=${printLetter.verificationCode}`} 
+                  size={64} 
+                  className="border border-zinc-200"
                 />
                 <div className="space-y-0.5 min-w-0">
                   <p className="font-bold text-zinc-850">✓ DOKUMEN RESMI TERVERIFIKASI DIGITAL</p>

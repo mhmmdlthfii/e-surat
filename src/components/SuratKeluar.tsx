@@ -18,6 +18,7 @@ import {
 import { 
   generateQrSvg 
 } from '../utils/qr';
+import DocQRCode from './DocQRCode';
 import { 
   Plus, 
   Search, 
@@ -605,9 +606,10 @@ export default function SuratKeluar({ currentUserId, currentUserRole, currentUse
                     {selectedLetter.status === 'Terbit' && (
                       <div className="mt-12 border-t border-zinc-200 pt-3 flex items-center gap-4 text-[10px] text-zinc-500 bg-zinc-50 p-3 rounded-xl border">
                         {/* Dynamic Hash SVG Rendering */}
-                        <div 
-                          className="w-20 h-20 bg-white border border-zinc-200 p-1 rounded-lg flex-shrink-0"
-                          dangerouslySetInnerHTML={{ __html: selectedLetter.qrCodeUrl ? selectedLetter.qrCodeUrl.replace('data:image/svg+xml;utf8,', '') : '' }}
+                        <DocQRCode 
+                          value={`${window.location.origin}/#verify?code=${selectedLetter.verificationCode}`} 
+                          size={70} 
+                          className="border border-zinc-200"
                         />
                         <div className="space-y-0.5 min-w-0">
                           <p className="font-bold text-zinc-800 flex items-center gap-1">
