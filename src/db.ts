@@ -581,21 +581,54 @@ export const pullDBFromServer = async (): Promise<any> => {
     const res = await fetch('/api/db');
     if (!res.ok) return null;
     const data = await res.json();
+    const isLoggedIn = localStorage.getItem('simahat_is_logged_in') === 'true';
+
     if (data && typeof data === 'object' && Object.keys(data).length > 0) {
-      // Save all keys to localStorage
-      if (data.users) setStorageItem(DB_KEYS.USERS, data.users);
-      if (data.incomingLetters) setStorageItem(DB_KEYS.INCOMING_LETTERS, data.incomingLetters);
-      if (data.dispositions) setStorageItem(DB_KEYS.DISPOSITIONS, data.dispositions);
-      if (data.outgoingLetters) setStorageItem(DB_KEYS.OUTGOING_LETTERS, data.outgoingLetters);
-      if (data.templates) setStorageItem(DB_KEYS.TEMPLATES, data.templates);
-      if (data.schoolSettings) setStorageItem(DB_KEYS.SCHOOL_SETTINGS, data.schoolSettings);
-      if (data.signatureConfig) setStorageItem(DB_KEYS.SIGNATURE_CONFIG, data.signatureConfig);
-      if (data.auditLogs) setStorageItem(DB_KEYS.AUDIT_LOGS, data.auditLogs);
-      if (data.notifications) setStorageItem(DB_KEYS.NOTIFICATIONS, data.notifications);
+      if (isLoggedIn) {
+        // Save and merge keys to prevent overwriting newer client data
+        const local = getDB();
+        const mergeArrays = (localArr: any[] = [], serverArr: any[] = []) => {
+          const merged = [...serverArr];
+          const serverIds = new Set(serverArr.map(item => item.id));
+          for (const item of localArr) {
+            if (!serverIds.has(item.id)) {
+              merged.push(item);
+            }
+          }
+          return merged;
+        };
+
+        if (data.users) setStorageItem(DB_KEYS.USERS, mergeArrays(local.users, data.users));
+        if (data.incomingLetters) setStorageItem(DB_KEYS.INCOMING_LETTERS, mergeArrays(local.incomingLetters, data.incomingLetters));
+        if (data.dispositions) setStorageItem(DB_KEYS.DISPOSITIONS, mergeArrays(local.dispositions, data.dispositions));
+        if (data.outgoingLetters) setStorageItem(DB_KEYS.OUTGOING_LETTERS, mergeArrays(local.outgoingLetters, data.outgoingLetters));
+        if (data.templates) setStorageItem(DB_KEYS.TEMPLATES, mergeArrays(local.templates, data.templates));
+        if (data.auditLogs) setStorageItem(DB_KEYS.AUDIT_LOGS, mergeArrays(local.auditLogs, data.auditLogs));
+        if (data.notifications) setStorageItem(DB_KEYS.NOTIFICATIONS, mergeArrays(local.notifications, data.notifications));
+
+        if (data.schoolSettings) setStorageItem(DB_KEYS.SCHOOL_SETTINGS, data.schoolSettings);
+        if (data.signatureConfig) setStorageItem(DB_KEYS.SIGNATURE_CONFIG, data.signatureConfig);
+
+        // Push combined data back to sync server
+        pushDBToServer();
+      } else {
+        // Safe direct save for unauthenticated / anonymous readers (phones)
+        if (data.users) setStorageItem(DB_KEYS.USERS, data.users);
+        if (data.incomingLetters) setStorageItem(DB_KEYS.INCOMING_LETTERS, data.incomingLetters);
+        if (data.dispositions) setStorageItem(DB_KEYS.DISPOSITIONS, data.dispositions);
+        if (data.outgoingLetters) setStorageItem(DB_KEYS.OUTGOING_LETTERS, data.outgoingLetters);
+        if (data.templates) setStorageItem(DB_KEYS.TEMPLATES, data.templates);
+        if (data.schoolSettings) setStorageItem(DB_KEYS.SCHOOL_SETTINGS, data.schoolSettings);
+        if (data.signatureConfig) setStorageItem(DB_KEYS.SIGNATURE_CONFIG, data.signatureConfig);
+        if (data.auditLogs) setStorageItem(DB_KEYS.AUDIT_LOGS, data.auditLogs);
+        if (data.notifications) setStorageItem(DB_KEYS.NOTIFICATIONS, data.notifications);
+      }
       return getDB();
     } else {
-      // Server is empty, initialize it by pushing the current client's default database state
-      pushDBToServer();
+      // Server is empty, initialize it ONLY if the user is authenticated
+      if (isLoggedIn) {
+        pushDBToServer();
+      }
     }
   } catch (error) {
     console.error('Failed to pull DB from server:', error);

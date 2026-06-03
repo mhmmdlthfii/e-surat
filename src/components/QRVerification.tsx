@@ -33,6 +33,7 @@ export default function QRVerification({ initialCode = '', triggerToast }: QRVer
   const [code, setCode] = useState(initialCode);
   const [verifiedLetter, setVerifiedLetter] = useState<OutgoingLetter | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // When initialCode prop changes, auto run search
@@ -70,32 +71,42 @@ export default function QRVerification({ initialCode = '', triggerToast }: QRVer
   };
 
   const handleVerify = async (searchCode?: string) => {
-    // Read directly from getDB() or server sync to avoid lag and enable cross-device scanning
-    const latestDb = await pullDBFromServer() || getDB();
-    setDb(latestDb);
-    
+    setIsLoading(true);
     const inputCode = searchCode || code;
-    setHasSearched(true);
 
     if (!inputCode.trim()) {
       setVerifiedLetter(null);
+      setHasSearched(true);
+      setIsLoading(false);
       return;
     }
 
-    // Try finding by Verification Code (case insensitive) or UUID in the latest synchronous data
-    const found = latestDb.outgoingLetters.find((l: any) => 
-      l.status === 'Terbit' && (
-        (l.verificationCode && l.verificationCode.toLowerCase() === inputCode.trim().toLowerCase()) ||
-        (l.uuid && l.uuid.toLowerCase() === inputCode.trim().toLowerCase())
-      )
-    );
+    try {
+      // Read directly from getDB() or server sync to avoid lag and enable cross-device scanning
+      const latestDb = await pullDBFromServer() || getDB();
+      setDb(latestDb);
+      
+      setHasSearched(true);
 
-    if (found) {
-      setVerifiedLetter(found);
-      triggerToast('Verifikasi keaslian dokumen berhasil!', 'success');
-    } else {
-      setVerifiedLetter(null);
-      triggerToast('Dokumen gagal diverifikasi / tidak ditemukan!', 'error');
+      // Try finding by Verification Code (case insensitive) or UUID in the latest synchronous data
+      const found = latestDb.outgoingLetters.find((l: any) => 
+        l.status === 'Terbit' && (
+          (l.verificationCode && l.verificationCode.toLowerCase() === inputCode.trim().toLowerCase()) ||
+          (l.uuid && l.uuid.toLowerCase() === inputCode.trim().toLowerCase())
+        )
+      );
+
+      if (found) {
+        setVerifiedLetter(found);
+        triggerToast('Verifikasi keaslian dokumen berhasil!', 'success');
+      } else {
+        setVerifiedLetter(null);
+        triggerToast('Dokumen gagal diverifikasi / tidak ditemukan!', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -164,96 +175,102 @@ export default function QRVerification({ initialCode = '', triggerToast }: QRVer
       </div>
 
       {/* Validation Result Canvas */}
-      {hasSearched && (
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full"
-        >
-          {verifiedLetter ? (
-            /* CASE 1: DOKUMEN RESMI (VALID) */
-            <div className="backdrop-blur-md bg-emerald-500/5 dark:bg-zinc-900/50 border-2 border-emerald-500/30 rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col md:flex-row gap-6">
-              
-              <div className="absolute right-0 top-0 w-44 h-44 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+      {isLoading ? (
+        <div id="loader_verification" className="flex flex-col items-center justify-center py-16 space-y-4 bg-zinc-50 dark:bg-zinc-900/30 rounded-3xl border border-zinc-200/50 dark:border-zinc-800">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-xs text-zinc-500 font-medium">Sedang memverifikasi keabsahan dokumen...</p>
+        </div>
+      ) : (
+        hasSearched && (
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full"
+          >
+            {verifiedLetter ? (
+              /* CASE 1: DOKUMEN RESMI (VALID) */
+              <div className="backdrop-blur-md bg-emerald-500/5 dark:bg-zinc-900/50 border-2 border-emerald-500/30 rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col md:flex-row gap-6">
+                
+                <div className="absolute right-0 top-0 w-44 h-44 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
-              {/* Status Header Badge Left */}
-              <div className="flex flex-col items-center justify-center gap-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6 text-center w-full md:w-52 flex-shrink-0 relative">
-                <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center border-4 border-emerald-500/30 animate-pulse">
-                  <ShieldCheck size={36} />
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[10px] font-mono tracking-widest text-emerald-600 dark:text-emerald-400 font-extrabold uppercase bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                    APPROVED
-                  </span>
-                  <h3 className="text-base font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight">✓ DOKUMEN RESMI</h3>
-                  <p className="text-[9px] text-zinc-400">SMP ISLAM AL HIKMAH MAYONG</p>
-                </div>
-              </div>
-
-              {/* Status Details Right */}
-              <div className="flex-1 space-y-4">
-                <div className="border-b border-zinc-200/50 dark:border-zinc-800 pb-3 flex items-center justify-between">
-                  <div>
-                    <h3 className="font-bold text-sm text-zinc-850 dark:text-zinc-200">Hasil Autentikasi Kriptografis</h3>
-                    <p className="text-[10px] text-zinc-400">Arsip digital terekam di pangkalan data SIMAHAT Sekolah </p>
+                {/* Status Header Badge Left */}
+                <div className="flex flex-col items-center justify-center gap-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6 text-center w-full md:w-52 flex-shrink-0 relative">
+                  <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center border-4 border-emerald-500/30 animate-pulse">
+                    <ShieldCheck size={36} />
                   </div>
-                  <span className="text-[10px] text-zinc-400 font-mono flex items-center gap-1">
-                    <Clock size={10} className="text-blue-500" />
-                    <span>Disetujui: {new Date(verifiedLetter.signedAt || '').toLocaleDateString('id-ID')}</span>
-                  </span>
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-mono tracking-widest text-emerald-600 dark:text-emerald-400 font-extrabold uppercase bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                      APPROVED
+                    </span>
+                    <h3 className="text-base font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight">✓ DOKUMEN RESMI</h3>
+                    <p className="text-[9px] text-zinc-400">SMP ISLAM AL HIKMAH MAYONG</p>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase">Judul Agenda:</p>
-                    <p className="font-bold text-zinc-900 dark:text-white">{verifiedLetter.title}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase">Nomor Surat Resmi:</p>
-                    <p className="font-mono font-bold text-blue-500">{verifiedLetter.letterNumber}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase">Penerima Tembusan:</p>
-                    <p className="font-semibold text-zinc-700 dark:text-zinc-300">{verifiedLetter.receiver}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase">Pejabat Penandatangan:</p>
-                    <p className="text-zinc-700 dark:text-zinc-300 font-bold flex items-center gap-1">
-                      <Award size={12} className="text-blue-500" />
-                      <span>{verifiedLetter.signedBy}</span>
-                    </p>
-                  </div>
-                  <div className="space-y-1 sm:col-span-2 bg-white/40 dark:bg-zinc-950/40 border border-zinc-200/50 dark:border-zinc-850 p-2.5 rounded-xl space-y-1">
-                    <div className="flex items-center justify-between">
-                      <p className="text-[8.5px] font-bold text-zinc-400 uppercase flex items-center gap-1">
-                        <Lock size={10} className="text-blue-500" />
-                        <span>SHA256 File Hash Terdaftar</span>
-                      </p>
-                      <span className="text-[8px] text-emerald-500 font-bold">✓ INTEGRITY SECURED</span>
+                {/* Status Details Right */}
+                <div className="flex-1 space-y-4">
+                  <div className="border-b border-zinc-200/50 dark:border-zinc-800 pb-3 flex items-center justify-between">
+                    <div>
+                      <h3 className="font-bold text-sm text-zinc-850 dark:text-zinc-200">Hasil Autentikasi Kriptografis</h3>
+                      <p className="text-[10px] text-zinc-400">Arsip digital terekam di pangkalan data SIMAHAT Sekolah </p>
                     </div>
-                    <p className="font-mono text-[9px] text-zinc-400 break-all bg-zinc-50 dark:bg-zinc-900 p-1.5 rounded">{verifiedLetter.sha256Hash}</p>
+                    <span className="text-[10px] text-zinc-400 font-mono flex items-center gap-1">
+                      <Clock size={10} className="text-blue-500" />
+                      <span>Disetujui: {new Date(verifiedLetter.signedAt || '').toLocaleDateString('id-ID')}</span>
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase">Judul Agenda:</p>
+                      <p className="font-bold text-zinc-900 dark:text-white">{verifiedLetter.title}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase">Nomor Surat Resmi:</p>
+                      <p className="font-mono font-bold text-blue-500">{verifiedLetter.letterNumber}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase">Penerima Tembusan:</p>
+                      <p className="font-semibold text-zinc-700 dark:text-zinc-300">{verifiedLetter.receiver}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase">Pejabat Penandatangan:</p>
+                      <p className="text-zinc-700 dark:text-zinc-300 font-bold flex items-center gap-1">
+                        <Award size={12} className="text-blue-500" />
+                        <span>{verifiedLetter.signedBy}</span>
+                      </p>
+                    </div>
+                    <div className="space-y-1 sm:col-span-2 bg-white/40 dark:bg-zinc-950/40 border border-zinc-200/50 dark:border-zinc-850 p-2.5 rounded-xl space-y-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[8.5px] font-bold text-zinc-400 uppercase flex items-center gap-1">
+                          <Lock size={10} className="text-blue-500" />
+                          <span>SHA256 File Hash Terdaftar</span>
+                        </p>
+                        <span className="text-[8px] text-emerald-500 font-bold">✓ INTEGRITY SECURED</span>
+                      </div>
+                      <p className="font-mono text-[9px] text-zinc-400 break-all bg-zinc-50 dark:bg-zinc-900 p-1.5 rounded">{verifiedLetter.sha256Hash}</p>
+                    </div>
+                  </div>
+
+                  {/* Simulated file download confirmation */}
+                  <div className="p-3 bg-white/40 dark:bg-zinc-950/20 border border-zinc-100 dark:border-zinc-850 rounded-2xl flex items-center justify-between text-[11px] text-zinc-500 leading-relaxed">
+                    <div className="flex items-center gap-2">
+                      <FileText size={16} className="text-red-500" />
+                      <span>Naskah asli tersimpan aman untuk verifikasi luring.</span>
+                    </div>
+                    <button 
+                      onClick={() => triggerToast('Menampilkan draf asli di tab cetak...', 'indigo')} 
+                      className="text-xs text-blue-500 font-bold hover:underline"
+                    >
+                      Pratinjau Asli ➜
+                    </button>
                   </div>
                 </div>
 
-                {/* Simulated file download confirmation */}
-                <div className="p-3 bg-white/40 dark:bg-zinc-950/20 border border-zinc-100 dark:border-zinc-850 rounded-2xl flex items-center justify-between text-[11px] text-zinc-500 leading-relaxed">
-                  <div className="flex items-center gap-2">
-                    <FileText size={16} className="text-red-500" />
-                    <span>Naskah asli tersimpan aman untuk verifikasi luring.</span>
-                  </div>
-                  <button 
-                    onClick={() => triggerToast('Menampilkan draf asli di tab cetak...', 'indigo')} 
-                    className="text-xs text-blue-500 font-bold hover:underline"
-                  >
-                    Pratinjau Asli ➜
-                  </button>
-                </div>
               </div>
-
-            </div>
-          ) : (
-            /* CASE 2: DOKUMEN TIDAK DITEMUKAN (INVALID / HOAX) */
-            <div className="backdrop-blur-md bg-red-505/5 dark:bg-zinc-900/50 border-2 border-red-500/30 rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col md:flex-row gap-6">
+            ) : (
+              /* CASE 2: DOKUMEN TIDAK DITEMUKAN (INVALID / HOAX) */
+              <div className="backdrop-blur-md bg-red-500/5 dark:bg-zinc-900/50 border-2 border-red-500/30 rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col md:flex-row gap-6">
               
               <div className="absolute right-0 top-0 w-44 h-44 bg-red-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -297,7 +314,8 @@ export default function QRVerification({ initialCode = '', triggerToast }: QRVer
             </div>
           )}
         </motion.div>
-      )}
+      )
+    )}
     </div>
   );
 }
